@@ -23,4 +23,12 @@ class Process {
         int getProcessServiceTime(){
             return processServiceTime;
         }
+
+        int getProcessFinishTime(){
+            return processFinishTime;
+        }
+        
+        void setProcessFinishTime(int finishTime){
+            processFinishTime = finishTime;
+        }
 };
