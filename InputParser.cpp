@@ -16,12 +16,12 @@ class InputParser {
         int numProcesses;
         vector<Process> Processes;
 
-        vector<string> splitByComma(string line) {
+        vector<string> splitByDelim(string line, char delim) {
             vector<string> result;
             stringstream ss(line);
             string value;
 
-            while (getline(ss, value, ',')) {
+            while (getline(ss, value, delim)) {
                 result.push_back(value);
             }
 
@@ -46,7 +46,7 @@ class InputParser {
             outputType = line;
 
             getline(file, line);
-            algorithmsList = splitByComma(line);
+            algorithmsList = splitByDelim(line, '-');
 
             getline(file, line);
             endTime = stoi(line);
@@ -56,7 +56,7 @@ class InputParser {
 
             for(int i = 0; i < numProcesses; i++){
                 getline(file, line);
-                vector<string> processConfig = splitByComma(line);
+                vector<string> processConfig = splitByDelim(line, ',');
 
                 Process process = Process(processConfig[0][0], stoi(processConfig[1]), stoi(processConfig[2]));
                 Processes.push_back(process);
