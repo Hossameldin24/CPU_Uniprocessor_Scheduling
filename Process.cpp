@@ -12,23 +12,31 @@ class Process {
             processServiceTime = serviceTime;
         }
 
-        char getProcessName(){
+        char getName(){
             return processName;
         }
 
-        int getProcessArrivalTime(){
+        int getArrivalTime(){
             return processArrivalTime;
         }
 
-        int getProcessServiceTime(){
+        int getServiceTime(){
             return processServiceTime;
         }
 
-        int getProcessFinishTime(){
+        int getFinishTime(){
             return processFinishTime;
         }
+
+        int getTurnaround(){
+            return processFinishTime - processArrivalTime;
+        }
+
+        double getNormTurn(){
+            return (1.0*getTurnaround())/processServiceTime;
+        }
         
-        void setProcessFinishTime(int finishTime){
+        void setFinishTime(int finishTime){
             processFinishTime = finishTime;
         }
 };
