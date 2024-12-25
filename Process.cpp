@@ -3,6 +3,7 @@ class Process {
         char processName;
         int processArrivalTime;
         int processServiceTime;
+        int processFinishTime;
     
     public:
         Process(char name, int arrivalTime, int serviceTime){

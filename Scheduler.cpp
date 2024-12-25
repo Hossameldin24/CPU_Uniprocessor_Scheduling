@@ -4,70 +4,120 @@
 #include <iomanip>
 
 #include "./InputParser.cpp"
-#include "./Process.cpp"
 
 using namespace std;
 
 class Scheduler {
     private:
         InputParser parser;
-        string filePath;
+        string inputFilePath;
+        string outputFilePath;
+        vector<Process> processes;
+        int numProcesses;
+        int endTime;
+        vector<string> algorithms;
+        string outputType;
 
     public:
-        Scheduler(string filePath){
+        Scheduler(string inputFilePath, string outputFilePath){
             parser = InputParser();
-            this->filePath = filePath;
+            this->inputFilePath = inputFilePath;
+            this->outputFilePath = outputFilePath;
         }
 
         void runSchedule(){
-            parser.readFile(this->filePath);
-            vector<string> algorithms = parser.getAlgorithmsList();
-            vector<Process> processes = parser.getProcesses();
-            int numProcess = parser.getNumProcesses();
-            int endTime = parser.getEndTime();
+            parser.readFile(this->inputFilePath);
+            algorithms = parser.getAlgorithmsList();
+            processes = parser.getProcesses();
+            numProcesses = parser.getNumProcesses();
+            endTime = parser.getEndTime();
+            outputType = parser.getOutputType();
 
-            if(parser.getOutputType() == "stats"){
+            cout << outputType << endl;
+
+            if(outputType == "stats"){
+                for(string algorithm : algorithms){
+                    vector<vector<string>> output;
+                    
+                    if(algorithm == "FCFS"){
+                        // output = FCFS(); - UNCOMMENT WHEN IMPLEMENTED
+                    }else if(algorithm == "RR"){
+                        // output = RR(); - UNCOMMENT WHEN IMPLEMENTED
+                    }else if(algorithm == "SPN"){
+                        // output = SPN(); - UNCOMMENT WHEN IMPLEMENTED
+                    }else if(algorithm == "SRT"){
+                        // output = SRT(); - UNCOMMENT WHEN IMPLEMENTED
+                    }else if(algorithm == "HRRN"){
+                        // output = HRRN(); - UNCOMMENT WHEN IMPLEMENTED
+                    }else if(algorithm == "FB-1"){
+                        // output = FB-1(); - UNCOMMENT WHEN IMPLEMENTED
+                    }else if(algorithm == "FB-2i"){
+                        // output = FB-2i(); - UNCOMMENT WHEN IMPLEMENTED
+                    }else if(algorithm == "Aging"){
+                        // output = Aging(); - UNCOMMENT WHEN IMPLEMENTED
+                    }else{
+                        cerr << "Incorrect algorithm name" << endl;
+                    }
+
+                    printStatsOutput(algorithm, output);
+                }
+            }else if(parser.getOutputType() == "trace"){
                 for(string algorithm : algorithms){
                     vector<vector<string>> output;
 
+                    if(algorithm == "FCFS"){
+                        // output = FCFS(); - UNCOMMENT WHEN IMPLEMENTED
+                    }else if(algorithm == "RR"){
+                        // output = RR(); - UNCOMMENT WHEN IMPLEMENTED
+                    }else if(algorithm == "SPN"){
+                        // output = SPN(); - UNCOMMENT WHEN IMPLEMENTED
+                    }else if(algorithm == "SRT"){
+                        // output = SRT(); - UNCOMMENT WHEN IMPLEMENTED
+                    }else if(algorithm == "HRRN"){
+                        // output = HRRN(); - UNCOMMENT WHEN IMPLEMENTED
+                    }else if(algorithm == "FB-1"){
+                        // output = FB-1(); - UNCOMMENT WHEN IMPLEMENTED
+                    }else if(algorithm == "FB-2i"){
+                        // output = FB-2i(); - UNCOMMENT WHEN IMPLEMENTED
+                    }else if(algorithm == "Aging"){
+                        // output = Aging(); - UNCOMMENT WHEN IMPLEMENTED
+                    }else{
+                        cerr << "Incorrect algorithm name" << endl;
+                    }
 
-                    printStatsOutput(output);
+                    printTraceOutput(algorithm, output);
                 }
+            }else{
+                cerr << "Invalid Output Type in input file" << endl;
             }
         }
 
-        void printTraceOutput(){
+        void printTraceOutput(string algorithm, vector<vector<string>> inputVectors){
 
         }
 
-        void printStatsOutput(vector<vector<string>> inputVectors){
-            std::ofstream file(filePath);
+        void printStatsOutput(string algorithm, vector<vector<string>> inputVectors){
+            ofstream file(outputFilePath);
 
             if (!file) {
-                std::cerr << "Error opening file: " << filePath << std::endl;
+                cerr << "Error opening file: " << outputFilePath << endl;
                 return;
             }
 
-            for (int i = 0; i < inputVectors[0].size(); i++) {
-                file << std::setw(10) << inputVectors[0][i] << " |  ";
+            file << algorithm << "\n";
+
+            file << "Process     |";
+            for (int j = 0; j < inputVectors[0].size(); j++) {
+                file << setw(10) << inputVectors[0][j] << " |  ";
             }
             file << "\n";
-
-            file << "Process    |  Arrival    |  Service    |  Finish    |  Turnaround    |  NormTurn    |\n";
-
-            for (int i = 1; i < inputVectors.size(); i++) {
-                for (int j = 0; j < inputVectors[i].size(); j++) {
-                    file << std::setw(10) << inputVectors[i][j] << " |  ";
-                }
-                file << "\n";
-            }
 
             double sumTurnaround = 0, sumNormTurn = 0;
             int n = inputVectors[4].size();
 
             for (int i = 0; i < n; ++i) {
-                sumTurnaround += std::stod(inputVectors[4][i]);
-                sumNormTurn += std::stod(inputVectors[5][i]);
+                sumTurnaround += stod(inputVectors[4][i]);
+                sumNormTurn += stod(inputVectors[5][i]);
             }
 
             double meanTurnaround = sumTurnaround / n;
@@ -80,3 +130,9 @@ class Scheduler {
         }
 
 };
+
+int main() {
+    Scheduler scheduler = Scheduler("./testcases/01b-input.txt", "./output.txt");
+    scheduler.runSchedule();
+
+}
