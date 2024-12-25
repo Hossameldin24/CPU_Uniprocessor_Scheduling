@@ -4,7 +4,8 @@ class Process {
         int processArrivalTime;
         int processServiceTime;
         int processFinishTime;
-    
+        int processProgressTime;
+
     public:
         Process(char name, int arrivalTime, int serviceTime){
             processName = name;
@@ -30,6 +31,14 @@ class Process {
 
         int getTurnaround(){
             return processFinishTime - processArrivalTime;
+        }
+
+        int getProgressTime(){
+            return processProgressTime;
+        }
+
+        void incrementProgressTime(int progressTime){
+            processProgressTime += progressTime;
         }
 
         double getNormTurn(){
