@@ -125,13 +125,47 @@ class Scheduler {
             }
 
             file << left << setw(6) << algorithm;
-            
-            for(int i = 0; i < endTime; i++){
+
+            for(int i = 0; i < endTime + 1; i++){
                 file << i % 10 << " ";
             }
+            file << "\n";
 
-            file << "|\n";
+            file << "------";
+            for(int i = 0; i < endTime; i++){
+                file << "--";
+            }
+            file << "-\n";
 
+            for(int j = 0; j < numProcesses; j++){
+                file << inputVectors[0][j] << "     |";
+
+                int arrivalTime = stoi(inputVectors[1][j]);
+                int finishTime = stoi(inputVectors[3][j]);
+                int serviceTime = stoi(inputVectors[2][j]);
+                int startTime = finishTime - serviceTime;
+
+                for(int i = 0; i < arrivalTime; i++){
+                    file << " |";
+                }
+
+
+                for(int i = arrivalTime; i < startTime; i++){
+                    file << ".|";
+                }
+
+                for(int i = startTime; i < finishTime; i++){
+                    file << "*|";
+                }
+
+                file << "\n";
+            }
+
+            file << "------";
+            for(int i = 0; i < endTime; i++){
+                file << "--";
+            }
+            file << "-\n";
         }
 
         void printStatsOutput(string algorithm, vector<vector<string>> inputVectors){
