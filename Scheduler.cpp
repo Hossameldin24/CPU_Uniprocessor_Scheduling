@@ -35,6 +35,9 @@ class Scheduler {
 
             if(outputType == "stats"){
                 for(string algorithm : algorithms){
+                    
+                    resetFinishTime();
+
                     vector<vector<string>> output;
                     
                     if(algorithm == "1"){
@@ -47,7 +50,7 @@ class Scheduler {
                     }else if(algorithm == "4"){
                         // output = SRT(); - UNCOMMENT WHEN IMPLEMENTED
                     }else if(algorithm == "5"){
-                        // output = HRRN(); - UNCOMMENT WHEN IMPLEMENTED
+                        output = HRRN();
                     }else if(algorithm == "6"){
                         // output = FB-1(); - UNCOMMENT WHEN IMPLEMENTED
                     }else if(algorithm == "7"){
@@ -59,12 +62,13 @@ class Scheduler {
                         cerr << "Incorrect algorithm name" << endl;
                     }
 
-                    output = {{"A", "B", "C", "D", "E"}, {"0","2","4","6","8"}, {"3","6","4","5","2"},{"3", "9", "13", "18", "20"}, {"3", "7", "9", "12", "12"}, {"1.00", "1.17", "2.25", "2.40", "6.00"}};
-
                     printStatsOutput(algorithm, output);
                 }
             }else if(parser.getOutputType() == "trace"){
                 for(string algorithm : algorithms){
+
+                    resetFinishTime();
+
                     vector<vector<string>> output;
 
                     if(algorithm == "1"){
@@ -77,7 +81,7 @@ class Scheduler {
                     }else if(algorithm == "4"){
                         // output = SRT(); - UNCOMMENT WHEN IMPLEMENTED
                     }else if(algorithm == "5"){
-                        // output = HRRN(); - UNCOMMENT WHEN IMPLEMENTED
+                        output = HRRN();
                     }else if(algorithm == "6"){
                         // output = FB-1(); - UNCOMMENT WHEN IMPLEMENTED
                     }else if(algorithm == "7"){
@@ -88,8 +92,6 @@ class Scheduler {
                     }else{
                         cerr << "Incorrect algorithm name" << endl;
                     }
-
-                    output = {{"A", "B", "C", "D", "E"}, {"0","2","4","6","8"}, {"3","6","4","5","2"},{"3", "9", "13", "18", "20"}, {"3", "7", "9", "12", "12"}, {"1.00", "1.17", "2.25", "2.40", "6.00"}};
 
                     printTraceOutput(algorithm, output);
                 }
@@ -156,6 +158,10 @@ class Scheduler {
 
                 for(int i = startTime; i < finishTime; i++){
                     file << "*|";
+                }
+
+                for(int i = finishTime; i < endTime; i++){
+                    file << " |";
                 }
 
                 file << "\n";
@@ -226,7 +232,7 @@ class Scheduler {
 
             for (int i = 0; i < n; ++i) {
                 sumTurnaround += stoi(inputVectors[4][i]);
-                sumNormTurn += stoi(inputVectors[5][i]);
+                sumNormTurn += stod(inputVectors[5][i]);
             }
 
             double meanTurnaround = sumTurnaround / n;
@@ -237,25 +243,88 @@ class Scheduler {
             for (int j = 0; j < inputVectors[4].size(); j++) {
                 file << setw(10) << inputVectors[4][j] << " |  ";
             }
-            file << setw(5) << meanTurnaround << " |\n";
+            file << setw(5) <<  fixed << setprecision(2) << meanTurnaround << " |\n";
 
             file << "NormTurn       |";
             for (int j = 0; j < inputVectors[5].size(); j++) {
-                file << setw(10) << inputVectors[5][j] << " |  ";
+                file << setw(10)  << fixed << setprecision(2) << stod(inputVectors[5][j]) << " |  ";
             }
-            file << setw(5) << meanNormTurn << " |\n";
-            
-
-            // file << "Mean |  " << fixed << setprecision(2) << meanTurnaround << " |  "
-            //     << fixed << setprecision(2) << meanNormTurn << " |\n";
+            file << setw(5) << fixed << setprecision(2) << meanNormTurn << " |\n";
 
             file.close();
+        }
+
+        vector<vector<string>> getProcessesStats(){
+            vector<vector<string>> pStats(6);
+
+            for(int i = 0 ; i < numProcesses ; i++){
+                string str(1, processes[i].getName());
+                pStats[0].push_back(str);
+                pStats[1].push_back(to_string(processes[i].getArrivalTime()));
+                pStats[2].push_back(to_string(processes[i].getServiceTime()));
+                pStats[3].push_back(to_string(processes[i].getFinishTime()));
+                pStats[4].push_back(to_string(processes[i].getTurnaround()));
+                pStats[5].push_back(to_string(processes[i].getNormTurn()));
+
+            }
+
+            return pStats;
+        }
+
+        void resetFinishTime(){
+            for(int i =  0 ; i < numProcesses ; i++){
+                processes[i].setFinishTime(-1);
+            }
+        }
+
+        double calculateRatio(int idx, int t){
+            double waitingTime = t - processes[idx].getArrivalTime();
+            double serviceTime = processes[idx].getServiceTime();
+
+            double ratio = (waitingTime + serviceTime)/serviceTime;
+
+            return ratio;
+        }
+
+        vector<vector<string>> HRRN(){
+            
+            int t = 0;
+
+            while(t != endTime){
+                
+                int hrri = 1;
+                double hrr = -1;
+
+                for(int i = 0 ; i < numProcesses ; i++){
+
+                    if(processes[i].getArrivalTime() <= t && processes[i].getFinishTime() == -1){
+
+                        double ratio = calculateRatio(i, t);
+
+                        if(ratio > hrr){
+                            hrri = i;
+                            hrr = ratio;
+                        }
+                    }
+                }
+
+                if(hrr == -1) {         //no ready processes in the current time
+                    t+=1;
+                    continue;
+                }
+
+                t += processes[hrri].getServiceTime();
+                processes[hrri].setFinishTime(t);
+
+            }
+
+            return getProcessesStats();
         }
 
 };
 
 int main() {
-    Scheduler scheduler = Scheduler("./testcases/01a-input.txt", "./output2.txt");
+    Scheduler scheduler = Scheduler("./testcases/06c-input.txt", "./output2.txt");
     scheduler.runSchedule();
 
 }
