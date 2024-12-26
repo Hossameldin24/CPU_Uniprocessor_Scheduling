@@ -46,7 +46,7 @@ class InputParser {
             outputType = line;
 
             getline(file, line);
-            algorithmsList = splitByDelim(line, '-');
+            algorithmsList = splitByDelim(line, ',');
 
             getline(file, line);
             endTime = stoi(line);

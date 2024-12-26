@@ -11,6 +11,7 @@ class Process {
             processName = name;
             processArrivalTime = arrivalTime;
             processServiceTime = serviceTime;
+            processProgressTime = 0;
         }
 
         char getName(){

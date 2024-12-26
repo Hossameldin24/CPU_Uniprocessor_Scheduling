@@ -1,9 +1,11 @@
 #include <iostream>
 #include <fstream>
 #include <vector>
+#include <algorithm>
 #include <iomanip>
 
 #include "./InputParser.cpp"
+#include <queue>
 
 using namespace std;
 
@@ -29,6 +31,9 @@ class Scheduler {
             parser.readFile(this->inputFilePath);
             algorithms = parser.getAlgorithmsList();
             processes = parser.getProcesses();
+            sort(processes.begin(), processes.end(), [](Process a, Process b) {
+                return a.getArrivalTime() < b.getArrivalTime();
+            });
             numProcesses = parser.getNumProcesses();
             endTime = parser.getEndTime();
             outputType = parser.getOutputType();
@@ -41,10 +46,10 @@ class Scheduler {
                     vector<vector<string>> output;
                     
                     if(algorithm == "1"){
-                        // output = FCFS(); - UNCOMMENT WHEN IMPLEMENTED
+                        output = FCFS();
                     }else if(algorithm[0] == '2'){
                         char q = algorithm[2];
-                        // output = RR(q); - UNCOMMENT WHEN IMPLEMENTED
+                        output = RR(q - '0');
                     }else if(algorithm == "3"){
                         // output = SPN(); - UNCOMMENT WHEN IMPLEMENTED
                     }else if(algorithm == "4"){
@@ -72,10 +77,10 @@ class Scheduler {
                     vector<vector<string>> output;
 
                     if(algorithm == "1"){
-                        // output = FCFS(); - UNCOMMENT WHEN IMPLEMENTED
+                        output = FCFS();
                     }else if(algorithm[0] == '2'){
                         char q = algorithm[2];
-                        // output = RR(q); - UNCOMMENT WHEN IMPLEMENTED
+                        output = RR(q - '0');
                     }else if(algorithm == "3"){
                         // output = SPN(); - UNCOMMENT WHEN IMPLEMENTED
                     }else if(algorithm == "4"){
@@ -110,8 +115,11 @@ class Scheduler {
             
             if(algorithm == "1"){
                 algorithm = "FCFS";
-            }else if(algorithm == "2"){
+            }else if(algorithm[0] == '2'){
+                char q = algorithm[2];
                 algorithm = "RR";
+                algorithm += "-";
+                algorithm += q;
             }else if(algorithm == "3"){
                 algorithm = "SPN";
             }else if(algorithm == "4"){
@@ -184,8 +192,11 @@ class Scheduler {
 
             if(algorithm == "1"){
                 algorithm = "FCFS";
-            }else if(algorithm == "2"){
+            }else if(algorithm[0] == '2'){
+                char q = algorithm[2];
                 algorithm = "RR";
+                algorithm += "-";
+                algorithm += q;
             }else if(algorithm == "3"){
                 algorithm = "SPN";
             }else if(algorithm == "4"){
@@ -286,6 +297,119 @@ class Scheduler {
             return ratio;
         }
 
+        vector<vector<string>> FCFS(){
+
+            int currTime = 0;
+            int i = 0;
+            while (currTime < endTime){
+                Process* nextProcess = &processes[i];
+                int arrivalTime = nextProcess->getArrivalTime();
+                int serviceTime = nextProcess->getServiceTime();
+
+                if(arrivalTime > currTime){
+                    currTime = arrivalTime;
+                }
+
+                currTime += serviceTime;
+                nextProcess->setFinishTime(currTime);
+
+                i++;
+            }
+
+            return getProcessesStats();
+        }
+
+        vector<vector<string>> RR(int quantum) {
+            queue<Process*> processQueue;
+            processQueue.push(&processes[0]);
+            
+            int currTime = processes[0].getArrivalTime();
+            while(!processQueue.empty() && currTime < endTime) {
+                Process* currProcess = processQueue.front();
+                processQueue.pop();
+
+                for(int i = 0; i < numProcesses; i++){
+                    if(processes[i].getArrivalTime() == currTime+1){
+                        processQueue.push(&processes[i]);
+                    }else if(processes[i].getArrivalTime() > currTime+1){
+                        break;
+                    }
+                }
+                
+                int arrivalTime = currProcess->getArrivalTime();                
+                int compTime = currProcess->getProgressTime();
+                int remTime = currProcess->getServiceTime() - compTime;
+
+                int runTime = min(quantum, remTime);
+                currTime += runTime;
+                currProcess->incrementProgressTime(runTime);
+                
+                if(currProcess->getProgressTime() < currProcess->getServiceTime()) {
+                    processQueue.push(currProcess);
+                } else {
+                    currProcess->setFinishTime(currTime);
+                }
+            }
+            
+            return getProcessesStats();
+        }
+
+        // vector<vector<string>> RR(int quantum){
+        //     queue<Process*> processQueue;
+            
+        //     for(int i = 0; i < numProcesses; i++){
+        //         processQueue.push(&processes[i]);
+        //     }
+
+        //     int currTime = 0;
+        //     while (!processQueue.empty() && currTime < endTime){
+        //         Process* currProcess = processQueue.front();
+        //         processQueue.pop();
+
+        //         int arrivalTime = currProcess->getArrivalTime();
+        //         int compTime = currProcess->getProgressTime();
+        //         int remTime = currProcess->getServiceTime() - compTime;
+
+
+        //         if(arrivalTime > currTime){
+        //             cout << "waited from time = " << currTime << "to time = " << arrivalTime << endl;
+        //             currTime = arrivalTime;
+        //         }
+
+        //         int nextArrivalTime = -1;
+        //         if(!processQueue.empty()){
+        //             nextArrivalTime = processQueue.front()->getArrivalTime();
+        //         }
+                
+        //         if(remTime <= quantum){
+        //             currTime += quantum;
+        //             currProcess->setFinishTime(currTime);
+        //             cout << currProcess->getName() << "worked for 1 quantum @ time: " << currTime << endl;
+        //             continue;
+        //         }
+        //         else{
+        //             currTime += quantum;
+        //             currProcess->incrementProgressTime(quantum);
+
+        //             while(nextArrivalTime > currTime && currProcess->getProgressTime() < currProcess->getServiceTime()){
+        //                 currTime += quantum;
+        //                 currProcess->incrementProgressTime(quantum);
+        //                 cout << currProcess->getName() << "worked for quantums @ time: " << currTime << endl;
+        //             }
+
+        //             if(currProcess->getProgressTime() >= currProcess->getServiceTime()){
+        //                 currProcess->setFinishTime(currTime);
+        //             }
+
+        //         }
+
+        //         processQueue.push(currProcess);
+        //     }
+
+        //     return getProcessesStats();
+            
+        // }
+
         vector<vector<string>> HRRN(){
             
             int t = 0;
@@ -324,7 +448,10 @@ class Scheduler {
 };
 
 int main() {
-    Scheduler scheduler = Scheduler("./testcases/06c-input.txt", "./output2.txt");
-    scheduler.runSchedule();
+    // Scheduler scheduler = Scheduler("./testcases/02a-input.txt", "./output.txt");
+    // scheduler.runSchedule();
+
+    Scheduler scheduler2 = Scheduler("./testcases/02b-input.txt", "./output2.txt");
+    scheduler2.runSchedule();
 
 }
