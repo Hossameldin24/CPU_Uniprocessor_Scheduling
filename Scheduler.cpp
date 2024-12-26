@@ -1,9 +1,8 @@
-#include <iostream>
 #include <fstream>
 #include <vector>
 #include <algorithm>
 #include <iomanip>
-
+#include <bits/stdc++.h>
 #include "./InputParser.cpp"
 #include <queue>
 
@@ -57,7 +56,7 @@ class Scheduler {
                     }else if(algorithm == "5"){
                         output = HRRN();
                     }else if(algorithm == "6"){
-                        // output = FB-1(); - UNCOMMENT WHEN IMPLEMENTED
+                        output = FB1();
                     }else if(algorithm == "7"){
                         // output = FB-2i(); - UNCOMMENT WHEN IMPLEMENTED
                     }else if(algorithm[0] == '8'){
@@ -88,7 +87,7 @@ class Scheduler {
                     }else if(algorithm == "5"){
                         output = HRRN();
                     }else if(algorithm == "6"){
-                        // output = FB-1(); - UNCOMMENT WHEN IMPLEMENTED
+                        output = FB1();
                     }else if(algorithm == "7"){
                         // output = FB-2i(); - UNCOMMENT WHEN IMPLEMENTED
                     }else if(algorithm[0] == '8'){
@@ -354,67 +353,11 @@ class Scheduler {
             return getProcessesStats();
         }
 
-        // vector<vector<string>> RR(int quantum){
-        //     queue<Process*> processQueue;
-            
-        //     for(int i = 0; i < numProcesses; i++){
-        //         processQueue.push(&processes[i]);
-        //     }
-
-        //     int currTime = 0;
-        //     while (!processQueue.empty() && currTime < endTime){
-        //         Process* currProcess = processQueue.front();
-        //         processQueue.pop();
-
-        //         int arrivalTime = currProcess->getArrivalTime();
-        //         int compTime = currProcess->getProgressTime();
-        //         int remTime = currProcess->getServiceTime() - compTime;
-
-
-        //         if(arrivalTime > currTime){
-        //             cout << "waited from time = " << currTime << "to time = " << arrivalTime << endl;
-        //             currTime = arrivalTime;
-        //         }
-
-        //         int nextArrivalTime = -1;
-        //         if(!processQueue.empty()){
-        //             nextArrivalTime = processQueue.front()->getArrivalTime();
-        //         }
-                
-        //         if(remTime <= quantum){
-        //             currTime += quantum;
-        //             currProcess->setFinishTime(currTime);
-        //             cout << currProcess->getName() << "worked for 1 quantum @ time: " << currTime << endl;
-        //             continue;
-        //         }
-        //         else{
-        //             currTime += quantum;
-        //             currProcess->incrementProgressTime(quantum);
-
-        //             while(nextArrivalTime > currTime && currProcess->getProgressTime() < currProcess->getServiceTime()){
-        //                 currTime += quantum;
-        //                 currProcess->incrementProgressTime(quantum);
-        //                 cout << currProcess->getName() << "worked for quantums @ time: " << currTime << endl;
-        //             }
-
-        //             if(currProcess->getProgressTime() >= currProcess->getServiceTime()){
-        //                 currProcess->setFinishTime(currTime);
-        //             }
-
-        //         }
-
-        //         processQueue.push(currProcess);
-        //     }
-
-        //     return getProcessesStats();
-            
-        // }
-
         vector<vector<string>> HRRN(){
             
             int t = 0;
 
-            while(t != endTime){
+            while(t <= endTime){
                 
                 int hrri = 1;
                 double hrr = -1;
@@ -445,13 +388,87 @@ class Scheduler {
             return getProcessesStats();
         }
 
+        vector<vector<string>> FB1 (){
+            
+            int t = 0;
+
+            vector<queue<Process*>> qn(1);
+
+            while(t <= endTime){
+                
+                int lastEnti = 0;
+
+                for(int i = 0 ; i < numProcesses ; i++){
+
+                    if(processes[i].getArrivalTime() == t && processes[i].getFinishTime() == -1){
+                        qn[0].push(&processes[i]);
+                        lastEnti = i;                        
+                    }
+                }
+
+                int iq = -1;
+                
+                int pcount = 0;
+
+                for(int i = 0 ; i < qn.size() ; i++){
+
+                    if(!qn[i].empty()){
+                        if(iq == -1){
+                            iq = i;
+                        }
+                        
+                        pcount += qn[i].size();
+                    }
+                }
+
+                if(iq == -1){       //all queues are empty
+                    t++;
+                    continue;
+                }
+
+                if(pcount == 1 && ((lastEnti + 1 < numProcesses && processes[lastEnti+1].getArrivalTime() != t+1) || lastEnti == numProcesses - 1)){    
+                    //The only process in all queues at the current time
+
+                    t++;
+                    qn[iq].front()->incrementProgressTime(1);
+
+                    if(qn[iq].front()->getProgressTime() == qn[iq].front()->getServiceTime()){
+                        qn[iq].front()->setFinishTime(t);
+                        qn[iq].pop();
+                    }
+                    continue;
+                }
+
+                Process* popped = qn[iq].front(); qn[iq].pop();
+                popped->incrementProgressTime(1);
+                t++;
+                
+                if(popped->getServiceTime() == popped->getProgressTime()){
+                    popped->setFinishTime(t);
+                }
+
+                else if(qn.size() - 1 > iq){        //there exist a following queue
+                    qn[iq+1].push(popped);
+                }
+                
+                else{
+                    queue<Process*> newQ;
+                    newQ.push(popped);
+                    qn.push_back(newQ);
+                }
+
+            }
+
+            return getProcessesStats();
+        }
+
 };
 
 int main() {
     // Scheduler scheduler = Scheduler("./testcases/02a-input.txt", "./output.txt");
     // scheduler.runSchedule();
 
-    Scheduler scheduler2 = Scheduler("./testcases/02b-input.txt", "./output2.txt");
+    Scheduler scheduler2 = Scheduler("./testcases/07b-input.txt", "./output2.txt");
     scheduler2.runSchedule();
 
 }
