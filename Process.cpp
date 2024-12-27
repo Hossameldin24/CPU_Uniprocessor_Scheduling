@@ -1,3 +1,7 @@
+#include<bits/stdc++.h>
+
+using namespace std;
+
 class Process {
     private:
         char processName;
@@ -5,6 +9,8 @@ class Process {
         int processServiceTime;
         int processFinishTime;
         int processProgressTime;
+
+        set<int> processProgressTimes;
 
     public:
         Process(char name, int arrivalTime, int serviceTime){
@@ -42,6 +48,14 @@ class Process {
             processProgressTime += progressTime;
         }
 
+        set<int> getProgressTimes(){
+            return processProgressTimes;
+        }
+
+        void appendProgressTimes(int progressTime){
+            processProgressTimes.insert(progressTime);
+        }
+        
         double getNormTurn(){
             return (1.0*getTurnaround())/processServiceTime;
         }
