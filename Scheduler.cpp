@@ -38,16 +38,12 @@ public:
         numProcesses = parser.getNumProcesses();
         endTime = parser.getEndTime();
         outputType = parser.getOutputType();
-
         if (outputType == "stats")
         {
             for (string algorithm : algorithms)
             {
-
                 resetFinishTime();
-
                 vector<vector<string>> output;
-
                 if (algorithm == "1")
                 {
                     output = FCFS();
@@ -59,11 +55,11 @@ public:
                 }
                 else if (algorithm == "3")
                 {
-                    // output = SPN(); - UNCOMMENT WHEN IMPLEMENTED
+                    output = SPN();
                 }
                 else if (algorithm == "4")
                 {
-                    // output = SRT(); - UNCOMMENT WHEN IMPLEMENTED
+                    output = SRT();
                 }
                 else if (algorithm == "5")
                 {
@@ -86,7 +82,6 @@ public:
                 {
                     cerr << "Incorrect algorithm name" << endl;
                 }
-
                 printStatsOutput(algorithm, output);
             }
         }
@@ -96,9 +91,7 @@ public:
             {
 
                 resetFinishTime();
-
                 vector<vector<string>> output;
-
                 if (algorithm == "1")
                 {
                     output = FCFS();
@@ -110,11 +103,11 @@ public:
                 }
                 else if (algorithm == "3")
                 {
-                    // output = SPN(); - UNCOMMENT WHEN IMPLEMENTED
+                    output = SPN();
                 }
                 else if (algorithm == "4")
                 {
-                    // output = SRT(); - UNCOMMENT WHEN IMPLEMENTED
+                    output = SRT();
                 }
                 else if (algorithm == "5")
                 {
@@ -137,7 +130,6 @@ public:
                 {
                     cerr << "Incorrect algorithm name" << endl;
                 }
-
                 printTraceOutput(algorithm);
             }
         }
@@ -509,6 +501,100 @@ public:
             else
             {
                 currProcess->setFinishTime(currTime);
+            }
+        }
+
+        return getProcessesStats();
+    }
+
+    struct CompareProcessTime {
+        bool operator()(Process* a, Process* b) {
+            if (a->getServiceTime() == b->getServiceTime())
+                return a->getArrivalTime() > b->getArrivalTime();
+            return a->getServiceTime() > b->getServiceTime();
+        }
+    };
+
+     struct CompareRemainingTime {
+        bool operator()(Process* a, Process* b) {
+            int remainingA = a->getServiceTime() - a->getProgressTime();
+            int remainingB = b->getServiceTime() - b->getProgressTime();
+            
+            if (remainingA == remainingB)
+                return a->getArrivalTime() > b->getArrivalTime();
+            return remainingA > remainingB;
+        }
+    };
+
+    vector<vector<string>> SPN() {
+        priority_queue<Process*, vector<Process*>, CompareProcessTime> readyQueue;
+        
+        vector<Process*> notArrived;
+        for(int i = 0; i < numProcesses; i++) {
+            notArrived.push_back(&processes[i]);
+        }
+
+        int currTime = 0;
+
+        while((!readyQueue.empty() || !notArrived.empty()) && currTime < endTime) {
+            while(!notArrived.empty() && notArrived.front()->getArrivalTime() <= currTime) {
+                readyQueue.push(notArrived.front());
+                notArrived.erase(notArrived.begin());
+            }
+
+            if(readyQueue.empty() && !notArrived.empty()) {
+                currTime = notArrived.front()->getArrivalTime();
+                continue;
+            }
+
+            if(readyQueue.empty()) break;
+
+            Process* currentProcess = readyQueue.top();
+            readyQueue.pop();
+
+            int serviceTime = currentProcess->getServiceTime();
+            currTime += serviceTime;
+            
+            currentProcess->setFinishTime(currTime);
+        }
+
+        return getProcessesStats();
+    }
+
+    vector<vector<string>> SRT() {
+        priority_queue<Process*, vector<Process*>, CompareRemainingTime> readyQueue;
+        
+        vector<Process*> notArrived;
+        for(int i = 0; i < numProcesses; i++) {
+            notArrived.push_back(&processes[i]);
+        }
+
+        int currTime = 0;
+
+        while((!notArrived.empty() || !readyQueue.empty()) && currTime < endTime) {
+            while(!notArrived.empty() && notArrived.front()->getArrivalTime() <= currTime) {
+                readyQueue.push(notArrived.front());
+                notArrived.erase(notArrived.begin());
+            }
+
+            if(readyQueue.empty() && !notArrived.empty()) {
+                currTime = notArrived.front()->getArrivalTime();
+                continue;
+            }
+
+            if(readyQueue.empty()) break;
+
+            Process* nextProcess = readyQueue.top();
+            readyQueue.pop();
+            int nextArrivalTime = notArrived.empty() ? INT_MAX : notArrived.front()->getArrivalTime() - currTime;
+            int remTime = nextProcess->getServiceTime() - nextProcess->getProgressTime();
+            int runTime = min(remTime, nextArrivalTime);
+            currTime += runTime;
+            nextProcess->incrementProgressTime(runTime);
+            if(nextProcess->getProgressTime() >= nextProcess->getServiceTime()) {
+                nextProcess->setFinishTime(currTime);
+            } else {
+                readyQueue.push(nextProcess);
             }
         }
 
