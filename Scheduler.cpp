@@ -250,7 +250,7 @@ public:
                     file << " |";
                 }
 
-                file << "\n";
+                file << " \n";
             }
         }
 
@@ -285,7 +285,7 @@ public:
                 {
                     file << " |";
                 }
-                file << "\n";
+                file << " \n";
             }
         }
 
@@ -294,7 +294,7 @@ public:
         {
             file << "--";
         }
-        file << "--\n";
+        file << "--\n\n";
     }
 
     void printStatsOutput(string algorithm, vector<vector<string>> inputVectors)
@@ -345,33 +345,33 @@ public:
 
         file << algorithm << "\n";
 
-        file << "Process        |";
+        file << "Process    |";
         for (int j = 0; j < inputVectors[0].size(); j++)
         {
-            file << setw(10) << inputVectors[0][j] << " |  ";
+            file << "  " << inputVectors[0][j] << "  |";
         }
         file << "\n";
 
-        file << "Arrival        |";
+        file << "Arrival    |";
         for (int j = 0; j < inputVectors[1].size(); j++)
         {
-            file << setw(10) << inputVectors[1][j] << " |  ";
+            file << setw(3) << inputVectors[1][j] << "  |";
         }
         file << "\n";
 
-        file << "Service        |";
+        file << "Service    |";
         for (int j = 0; j < inputVectors[2].size(); j++)
         {
-            file << setw(10) << inputVectors[2][j] << " |  ";
+            file << setw(3) << inputVectors[2][j] << "  |";
         }
-        file << " Mean" << " |\n";
+        file << " Mean|\n";
 
-        file << "Finish         |";
+        file << "Finish     |";
         for (int j = 0; j < inputVectors[3].size(); j++)
         {
-            file << setw(10) << inputVectors[3][j] << " |  ";
+            file << setw(3) << inputVectors[3][j] << "  |";
         }
-        file << " -----" << "|\n";
+        file << "-----|\n";
 
         double sumTurnaround = 0, sumNormTurn = 0;
         int n = inputVectors[4].size();
@@ -385,20 +385,20 @@ public:
         double meanTurnaround = sumTurnaround / n;
         double meanNormTurn = sumNormTurn / n;
 
-        file << "Turnaround     |";
+        file << "Turnaround |";
         for (int j = 0; j < inputVectors[4].size(); j++)
         {
-            file << setw(10) << inputVectors[4][j] << " |  ";
+            file << setw(3) << inputVectors[4][j] << "  |";
         }
-        file << setw(5) << fixed << setprecision(2) << meanTurnaround << " |\n";
+        file << setw(4) << fixed << setprecision(2) << meanTurnaround << "|\n";
 
-        file << "NormTurn       |";
+        file << "NormTurn   |";
         for (int j = 0; j < inputVectors[5].size(); j++)
         {
-            file << setw(10) << fixed << setprecision(2) << stod(inputVectors[5][j]) << " |  ";
+            file << setw(5) << fixed << setprecision(2) << stod(inputVectors[5][j]) << "|";
         }
-        file << setw(5) << fixed << setprecision(2) << meanNormTurn << " |\n";
-
+        file << setw(5) << fixed << setprecision(2) << meanNormTurn << "|\n";
+        file << "\n";
         file.close();
     }
 
@@ -971,6 +971,6 @@ int main()
     // Scheduler scheduler = Scheduler("./testcases/02a-input.txt", "./output.txt");
     // scheduler.runSchedule();
 
-    Scheduler scheduler2 = Scheduler("./testcases/07c-input.txt", "./output2.txt");
+    Scheduler scheduler2 = Scheduler("./testcases/07a-input.txt", "./output2.txt");
     scheduler2.runSchedule();
 }
