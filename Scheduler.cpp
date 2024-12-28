@@ -76,7 +76,7 @@ public:
                 else if (algorithm[0] == '8')
                 {
                     char q = algorithm[2];
-                    // output = Aging(q); - UNCOMMENT WHEN IMPLEMENTED
+                    output = Aging(q - '0');
                 }
                 else
                 {
@@ -498,6 +498,11 @@ public:
             int remTime = currProcess->getServiceTime() - compTime;
 
             int runTime = min(quantum, remTime);
+
+            for(int i = 0 ; i < runTime ; i++){
+                currProcess->appendProgressTimes(currTime+i);
+            }
+
             currTime += runTime;
             currProcess->incrementProgressTime(runTime);
 
@@ -518,7 +523,7 @@ public:
 
         return getProcessesStats();
     }
-    
+
     struct CompareProcessTime
     {
         bool operator()(Process *a, Process *b)
@@ -886,6 +891,11 @@ public:
         }
         return getProcessesStats();
     }
+
+    vector<vector<string>> Aging(int q){
+
+    }
+
 };
 
 int main()
@@ -893,6 +903,6 @@ int main()
     // Scheduler scheduler = Scheduler("./testcases/02a-input.txt", "./output.txt");
     // scheduler.runSchedule();
 
-    Scheduler scheduler2 = Scheduler("./testcases/03d-input.txt", "./output2.txt");
+    Scheduler scheduler2 = Scheduler("./testcases/02c-input.txt", "./output2.txt");
     scheduler2.runSchedule();
 }
