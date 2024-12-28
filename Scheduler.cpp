@@ -20,6 +20,16 @@ private:
     vector<string> algorithms;
     string outputType;
 
+    void resetProcesses()
+    {
+        for (int i = 0; i < numProcesses; i++)
+        {
+            processes[i].resetProgressTimes();
+            processes[i].resetProgressTime();
+            processes[i].setFinishTime(-1);
+        }
+    }
+
 public:
     Scheduler(string inputFilePath, string outputFilePath)
     {
@@ -42,8 +52,9 @@ public:
         {
             for (string algorithm : algorithms)
             {
-                resetFinishTime();
+                resetProcesses();
                 vector<vector<string>> output;
+
                 if (algorithm == "1")
                 {
                     output = FCFS();
@@ -89,8 +100,8 @@ public:
         {
             for (string algorithm : algorithms)
             {
+                resetProcesses();
 
-                resetFinishTime();
                 vector<vector<string>> output;
                 if (algorithm == "1")
                 {
@@ -99,6 +110,7 @@ public:
                 else if (algorithm[0] == '2')
                 {
                     char q = algorithm[2];
+                    cout << "RR" << algorithm << endl;
                     output = RR(q - '0');
                 }
                 else if (algorithm == "3")
@@ -124,7 +136,7 @@ public:
                 else if (algorithm[0] == '8')
                 {
                     char q = algorithm[2];
-                    output = Aging(q-'0');
+                    output = Aging(q - '0');
                 }
                 else
                 {
@@ -141,13 +153,6 @@ public:
 
     void printTraceOutput(string algorithm)
     {
-        ofstream file(outputFilePath);
-
-        if (!file)
-        {
-            cerr << "Error opening file: " << outputFilePath << endl;
-            return;
-        }
 
         if (algorithm == "1")
         {
@@ -185,27 +190,27 @@ public:
             algorithm = "Aging";
         }
 
-        file << left << setw(6) << algorithm;
+        cout << left << setw(6) << algorithm;
 
         for (int i = 0; i < endTime + 1; i++)
         {
-            file << i % 10 << " ";
+            cout << i % 10 << " ";
         }
-        file << "\n";
+        cout << "\n";
 
-        file << "------";
+        cout << "------";
         for (int i = 0; i < endTime; i++)
         {
-            file << "--";
+            cout << "--";
         }
-        file << "--\n";
+        cout << "--\n";
 
         if (algorithm[0] == 'R' || algorithm == "FB-1" || algorithm == "FB-2i" || algorithm == "SRT" || algorithm == "Aging")
         { // if algorithm policy is preemptive
 
             for (int j = 0; j < numProcesses; j++)
             {
-                file << processes[j].getName() << "     |";
+                cout << processes[j].getName() << "     |";
 
                 set<int> progressTimes = processes[j].getProgressTimes();
 
@@ -225,32 +230,32 @@ public:
 
                 for (int i = 0; i < arrivalTime; i++)
                 {
-                    file << " |";
+                    cout << " |";
                 }
 
                 for (int i = arrivalTime; i < startTime; i++)
                 {
-                    file << ".|";
+                    cout << ".|";
                 }
 
                 for (int i = startTime; i <= finishTime; i++)
                 {
                     if (progressTimes.find(i) != progressTimes.end())
                     {
-                        file << "*|";
+                        cout << "*|";
                     }
                     else
                     {
-                        file << ".|";
+                        cout << ".|";
                     }
                 }
 
                 for (int i = finishTime + 1; i < endTime; i++)
                 {
-                    file << " |";
+                    cout << " |";
                 }
 
-                file << " \n";
+                cout << " \n";
             }
         }
 
@@ -259,7 +264,7 @@ public:
             for (int j = 0; j < numProcesses; j++)
             {
 
-                file << processes[j].getName() << "     |";
+                cout << processes[j].getName() << "     |";
 
                 int arrivalTime = processes[j].getArrivalTime();
                 int finishTime = processes[j].getFinishTime();
@@ -268,45 +273,37 @@ public:
 
                 for (int i = 0; i < arrivalTime; i++)
                 {
-                    file << " |";
+                    cout << " |";
                 }
 
                 for (int i = arrivalTime; i < startTime; i++)
                 {
-                    file << ".|";
+                    cout << ".|";
                 }
 
                 for (int i = startTime; i < finishTime; i++)
                 {
-                    file << "*|";
+                    cout << "*|";
                 }
 
                 for (int i = finishTime; i < endTime; i++)
                 {
-                    file << " |";
+                    cout << " |";
                 }
-                file << " \n";
+                cout << " \n";
             }
         }
 
-        file << "------";
+        cout << "------";
         for (int i = 0; i < endTime; i++)
         {
-            file << "--";
+            cout << "--";
         }
-        file << "--\n\n";
+        cout << "--\n\n";
     }
 
     void printStatsOutput(string algorithm, vector<vector<string>> inputVectors)
     {
-        ofstream file(outputFilePath);
-
-        if (!file)
-        {
-            cerr << "Error opening file: " << outputFilePath << endl;
-            return;
-        }
-
         if (algorithm == "1")
         {
             algorithm = "FCFS";
@@ -343,35 +340,35 @@ public:
             algorithm = "Aging";
         }
 
-        file << algorithm << "\n";
+        cout << algorithm << "\n";
 
-        file << "Process    |";
+        cout << "Process    |";
         for (int j = 0; j < inputVectors[0].size(); j++)
         {
-            file << "  " << inputVectors[0][j] << "  |";
+            cout << "  " << inputVectors[0][j] << "  |";
         }
-        file << "\n";
+        cout << "\n";
 
-        file << "Arrival    |";
+        cout << "Arrival    |";
         for (int j = 0; j < inputVectors[1].size(); j++)
         {
-            file << setw(3) << inputVectors[1][j] << "  |";
+            cout << setw(3) << inputVectors[1][j] << "  |";
         }
-        file << "\n";
+        cout << "\n";
 
-        file << "Service    |";
+        cout << "Service    |";
         for (int j = 0; j < inputVectors[2].size(); j++)
         {
-            file << setw(3) << inputVectors[2][j] << "  |";
+            cout << setw(3) << inputVectors[2][j] << "  |";
         }
-        file << " Mean|\n";
+        cout << " Mean|\n";
 
-        file << "Finish     |";
+        cout << "Finish     |";
         for (int j = 0; j < inputVectors[3].size(); j++)
         {
-            file << setw(3) << inputVectors[3][j] << "  |";
+            cout << setw(3) << inputVectors[3][j] << "  |";
         }
-        file << "-----|\n";
+        cout << "-----|\n";
 
         double sumTurnaround = 0, sumNormTurn = 0;
         int n = inputVectors[4].size();
@@ -385,21 +382,20 @@ public:
         double meanTurnaround = sumTurnaround / n;
         double meanNormTurn = sumNormTurn / n;
 
-        file << "Turnaround |";
+        cout << "Turnaround |";
         for (int j = 0; j < inputVectors[4].size(); j++)
         {
-            file << setw(3) << inputVectors[4][j] << "  |";
+            cout << setw(3) << inputVectors[4][j] << "  |";
         }
-        file << setw(4) << fixed << setprecision(2) << meanTurnaround << "|\n";
+        cout << setw(4) << fixed << setprecision(2) << meanTurnaround << "|\n";
 
-        file << "NormTurn   |";
+        cout << "NormTurn   |";
         for (int j = 0; j < inputVectors[5].size(); j++)
         {
-            file << setw(5) << fixed << setprecision(2) << stod(inputVectors[5][j]) << "|";
+            cout << setw(5) << fixed << setprecision(2) << stod(inputVectors[5][j]) << "|";
         }
-        file << setw(5) << fixed << setprecision(2) << meanNormTurn << "|\n";
-        file << "\n";
-        file.close();
+        cout << setw(5) << fixed << setprecision(2) << meanNormTurn << "|\n";
+        cout << "\n";
     }
 
     vector<vector<string>> getProcessesStats()
@@ -420,13 +416,6 @@ public:
         return pStats;
     }
 
-    void resetFinishTime()
-    {
-        for (int i = 0; i < numProcesses; i++)
-        {
-            processes[i].setFinishTime(-1);
-        }
-    }
 
     double calculateRatio(int idx, int t)
     {
@@ -493,7 +482,6 @@ public:
             Process *currProcess = processQueue.front();
             processQueue.pop();
 
-            // int arrivalTime = currProcess->getArrivalTime();
             int compTime = currProcess->getProgressTime();
             int remTime = currProcess->getServiceTime() - compTime;
 
@@ -520,7 +508,6 @@ public:
                 currProcess->setFinishTime(currTime);
             }
         }
-
         return getProcessesStats();
     }
 
@@ -971,6 +958,6 @@ int main()
     // Scheduler scheduler = Scheduler("./testcases/02a-input.txt", "./output.txt");
     // scheduler.runSchedule();
 
-    Scheduler scheduler2 = Scheduler("./testcases/07a-input.txt", "./output2.txt");
+    Scheduler scheduler2 = Scheduler("./testcases/01a-input.txt", "./output2.txt");
     scheduler2.runSchedule();
 }

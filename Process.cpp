@@ -54,6 +54,14 @@ class Process {
             return processProgressTimes;
         }
 
+        void resetProgressTimes(){
+            processProgressTimes.clear();
+        }
+
+        void resetProgressTime(){
+            processProgressTime = 0;
+        }
+
         void appendProgressTimes(int progressTime){
             processProgressTimes.insert(progressTime);
         }
