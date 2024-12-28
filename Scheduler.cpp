@@ -180,7 +180,7 @@ public:
         {
             algorithm = "FB-2i";
         }
-        else if (algorithm == "8")
+        else if (algorithm[0] == '8')
         {
             algorithm = "Aging";
         }
@@ -200,7 +200,7 @@ public:
         }
         file << "--\n";
 
-        if (algorithm[0] == 'R' || algorithm == "FB-1" || algorithm == "FB-2i" || algorithm == "SRT")
+        if (algorithm[0] == 'R' || algorithm == "FB-1" || algorithm == "FB-2i" || algorithm == "SRT" || algorithm == "Aging")
         { // if algorithm policy is preemptive
 
             for (int j = 0; j < numProcesses; j++)
@@ -220,7 +220,7 @@ public:
 
                 if (!progressTimes.empty())
                 {
-                    finishTime = *prev(progressTimes.end());
+                    finishTime = min(endTime-1, *prev(progressTimes.end()));
                 }
 
                 for (int i = 0; i < arrivalTime; i++)
@@ -338,7 +338,7 @@ public:
         {
             algorithm = "FB-2i";
         }
-        else if (algorithm == "8")
+        else if (algorithm[0] == '8')
         {
             algorithm = "Aging";
         }
@@ -493,7 +493,7 @@ public:
             Process *currProcess = processQueue.front();
             processQueue.pop();
 
-            int arrivalTime = currProcess->getArrivalTime();
+            // int arrivalTime = currProcess->getArrivalTime();
             int compTime = currProcess->getProgressTime();
             int remTime = currProcess->getServiceTime() - compTime;
 
@@ -895,7 +895,72 @@ public:
     
     vector<vector<string>> Aging(int quantum)
     {
-        
+        deque<Process *> processQueue;
+        vector<Process *> notArrived;
+
+        for (int i = 0; i < processes.size(); i++)
+        {
+            //no service time for any process
+            processes[i].setFinishTime(endTime);
+            processes[i].appendProgressTimes(endTime+1);
+            notArrived.push_back(&processes[i]);
+        }
+
+        int currTime = notArrived[0]->getArrivalTime();
+
+        while (!notArrived.empty() && notArrived.front()->getArrivalTime() == currTime)
+        {
+            processQueue.push_back(notArrived.front());
+            notArrived.erase(notArrived.begin());
+        }
+
+        while ((!processQueue.empty() || !notArrived.empty()) && currTime < endTime)
+        {
+
+            while (!notArrived.empty() && notArrived.front()->getArrivalTime() <= currTime)
+            {
+                processQueue.push_back(notArrived.front());
+                notArrived.erase(notArrived.begin());
+            }
+
+            Process *currProcess = processQueue.front();
+
+            int currIdx = 0;
+
+            for(int i = 0 ; i < processQueue.size() ;i++){
+                if(currProcess->getPriority() < processQueue[i]->getPriority()){
+                    currProcess = processQueue[i];
+                    currIdx = i;
+                }
+            }
+
+            processQueue.erase(processQueue.begin() + currIdx);
+
+            int runTime = quantum;
+
+            for(int i = 0 ; i < runTime ; i++){
+                currProcess->appendProgressTimes(currTime+i);
+            }
+
+            currTime += runTime;
+
+            while (!notArrived.empty() && notArrived.front()->getArrivalTime() <= currTime)
+            {
+                processQueue.push_back(notArrived.front());
+                notArrived.erase(notArrived.begin());
+            }
+
+
+            currProcess->resetPriority();
+            for(int i = 0 ; i < processQueue.size() ;i++){
+                processQueue[i]->incrementPriority();
+            }
+
+            processQueue.push_back(currProcess);
+        }
+
+        return getProcessesStats();
+
     }
 
 
@@ -906,6 +971,6 @@ int main()
     // Scheduler scheduler = Scheduler("./testcases/02a-input.txt", "./output.txt");
     // scheduler.runSchedule();
 
-    Scheduler scheduler2 = Scheduler("./testcases/02c-input.txt", "./output2.txt");
+    Scheduler scheduler2 = Scheduler("./testcases/07c-input.txt", "./output2.txt");
     scheduler2.runSchedule();
 }
