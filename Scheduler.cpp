@@ -124,7 +124,7 @@ public:
                 else if (algorithm[0] == '8')
                 {
                     char q = algorithm[2];
-                    // output = Aging(q); - UNCOMMENT WHEN IMPLEMENTED
+                    output = Aging(q-'0');
                 }
                 else
                 {
@@ -892,9 +892,12 @@ public:
         return getProcessesStats();
     }
 
-    vector<vector<string>> Aging(int q){
-
+    
+    vector<vector<string>> Aging(int quantum)
+    {
+        
     }
+
 
 };
 
