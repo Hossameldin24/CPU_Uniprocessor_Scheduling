@@ -13,7 +13,6 @@ class Scheduler
 private:
     InputParser parser;
     string inputFilePath;
-    string outputFilePath;
     vector<Process> processes;
     int numProcesses;
     int endTime;
@@ -31,11 +30,10 @@ private:
     }
 
 public:
-    Scheduler(string inputFilePath, string outputFilePath)
+    Scheduler(string inputFilePath)
     {
         parser = InputParser();
         this->inputFilePath = inputFilePath;
-        this->outputFilePath = outputFilePath;
     }
 
     void runSchedule()
@@ -110,7 +108,6 @@ public:
                 else if (algorithm[0] == '2')
                 {
                     char q = algorithm[2];
-                    cout << "RR" << algorithm << endl;
                     output = RR(q - '0');
                 }
                 else if (algorithm == "3")
@@ -387,7 +384,7 @@ public:
         {
             cout << setw(3) << inputVectors[4][j] << "  |";
         }
-        cout << setw(4) << fixed << setprecision(2) << meanTurnaround << "|\n";
+        cout << setw(5) << fixed << setprecision(2) << meanTurnaround << "|\n";
 
         cout << "NormTurn   |";
         for (int j = 0; j < inputVectors[5].size(); j++)
@@ -609,6 +606,11 @@ public:
             int nextArrivalTime = notArrived.empty() ? INT_MAX : notArrived.front()->getArrivalTime() - currTime;
             int remTime = nextProcess->getServiceTime() - nextProcess->getProgressTime();
             int runTime = min(remTime, nextArrivalTime);
+
+            for(int i = 0 ; i < runTime ; i++){
+                nextProcess->appendProgressTimes(currTime+i);
+            }
+
             currTime += runTime;
             nextProcess->incrementProgressTime(runTime);
             if (nextProcess->getProgressTime() >= nextProcess->getServiceTime())
@@ -953,11 +955,18 @@ public:
 
 };
 
-int main()
+int main(int argc, char *argv[])
 {
-    // Scheduler scheduler = Scheduler("./testcases/02a-input.txt", "./output.txt");
-    // scheduler.runSchedule();
+    if (argc != 2)
+    {
+        cerr << "Usage: " << argv[0] << " <input_file_path>" << endl;
+        return 1;
+    }
 
-    Scheduler scheduler2 = Scheduler("./testcases/01a-input.txt", "./output2.txt");
-    scheduler2.runSchedule();
+    string inputFilePath = argv[1];
+
+    Scheduler scheduler(inputFilePath);
+    scheduler.runSchedule();
+
+    return 0;
 }
