@@ -228,7 +228,8 @@ public:
                     file << " |";
                 }
 
-                for(int i = arrivalTime ; i < startTime ; i++){
+                for (int i = arrivalTime; i < startTime; i++)
+                {
                     file << ".|";
                 }
 
@@ -465,26 +466,32 @@ public:
     vector<vector<string>> RR(int quantum)
     {
         queue<Process *> processQueue;
-        processQueue.push(&processes[0]);
+        vector<Process *> notArrived;
 
-        int currTime = processes[0].getArrivalTime();
-        while (!processQueue.empty() && currTime < endTime)
+        for (int i = 0; i < processes.size(); i++)
         {
+            notArrived.push_back(&processes[i]);
+        }
+
+        int currTime = notArrived[0]->getArrivalTime();
+
+        while (!notArrived.empty() && notArrived.front()->getArrivalTime() == currTime)
+        {
+            processQueue.push(notArrived.front());
+            notArrived.erase(notArrived.begin());
+        }
+
+        while ((!processQueue.empty() || !notArrived.empty()) && currTime < endTime)
+        {
+
+            while (!notArrived.empty() && notArrived.front()->getArrivalTime() <= currTime)
+            {
+                processQueue.push(notArrived.front());
+                notArrived.erase(notArrived.begin());
+            }
+
             Process *currProcess = processQueue.front();
             processQueue.pop();
-            currProcess->appendProgressTimes(currTime);
-
-            for (int i = 0; i < numProcesses; i++)
-            {
-                if (processes[i].getArrivalTime() == currTime + 1)
-                {
-                    processQueue.push(&processes[i]);
-                }
-                else if (processes[i].getArrivalTime() > currTime + 1)
-                {
-                    break;
-                }
-            }
 
             int arrivalTime = currProcess->getArrivalTime();
             int compTime = currProcess->getProgressTime();
@@ -496,6 +503,11 @@ public:
 
             if (currProcess->getProgressTime() < currProcess->getServiceTime())
             {
+                while (!notArrived.empty() && notArrived.front()->getArrivalTime() <= currTime)
+                {
+                    processQueue.push(notArrived.front());
+                    notArrived.erase(notArrived.begin());
+                }
                 processQueue.push(currProcess);
             }
             else
@@ -506,94 +518,113 @@ public:
 
         return getProcessesStats();
     }
-
-    struct CompareProcessTime {
-        bool operator()(Process* a, Process* b) {
+    
+    struct CompareProcessTime
+    {
+        bool operator()(Process *a, Process *b)
+        {
             if (a->getServiceTime() == b->getServiceTime())
                 return a->getArrivalTime() > b->getArrivalTime();
             return a->getServiceTime() > b->getServiceTime();
         }
     };
 
-     struct CompareRemainingTime {
-        bool operator()(Process* a, Process* b) {
+    struct CompareRemainingTime
+    {
+        bool operator()(Process *a, Process *b)
+        {
             int remainingA = a->getServiceTime() - a->getProgressTime();
             int remainingB = b->getServiceTime() - b->getProgressTime();
-            
+
             if (remainingA == remainingB)
                 return a->getArrivalTime() > b->getArrivalTime();
             return remainingA > remainingB;
         }
     };
 
-    vector<vector<string>> SPN() {
-        priority_queue<Process*, vector<Process*>, CompareProcessTime> readyQueue;
-        
-        vector<Process*> notArrived;
-        for(int i = 0; i < numProcesses; i++) {
+    vector<vector<string>> SPN()
+    {
+        priority_queue<Process *, vector<Process *>, CompareProcessTime> readyQueue;
+
+        vector<Process *> notArrived;
+        for (int i = 0; i < numProcesses; i++)
+        {
             notArrived.push_back(&processes[i]);
         }
 
         int currTime = 0;
 
-        while((!readyQueue.empty() || !notArrived.empty()) && currTime < endTime) {
-            while(!notArrived.empty() && notArrived.front()->getArrivalTime() <= currTime) {
+        while ((!readyQueue.empty() || !notArrived.empty()) && currTime < endTime)
+        {
+            while (!notArrived.empty() && notArrived.front()->getArrivalTime() <= currTime)
+            {
                 readyQueue.push(notArrived.front());
                 notArrived.erase(notArrived.begin());
             }
 
-            if(readyQueue.empty() && !notArrived.empty()) {
+            if (readyQueue.empty() && !notArrived.empty())
+            {
                 currTime = notArrived.front()->getArrivalTime();
                 continue;
             }
 
-            if(readyQueue.empty()) break;
+            if (readyQueue.empty())
+                break;
 
-            Process* currentProcess = readyQueue.top();
+            Process *currentProcess = readyQueue.top();
             readyQueue.pop();
 
             int serviceTime = currentProcess->getServiceTime();
             currTime += serviceTime;
-            
+
             currentProcess->setFinishTime(currTime);
         }
 
         return getProcessesStats();
     }
 
-    vector<vector<string>> SRT() {
-        priority_queue<Process*, vector<Process*>, CompareRemainingTime> readyQueue;
-        
-        vector<Process*> notArrived;
-        for(int i = 0; i < numProcesses; i++) {
+    vector<vector<string>> SRT()
+    {
+        priority_queue<Process *, vector<Process *>, CompareRemainingTime> readyQueue;
+
+        vector<Process *> notArrived;
+        for (int i = 0; i < numProcesses; i++)
+        {
             notArrived.push_back(&processes[i]);
         }
 
         int currTime = 0;
 
-        while((!notArrived.empty() || !readyQueue.empty()) && currTime < endTime) {
-            while(!notArrived.empty() && notArrived.front()->getArrivalTime() <= currTime) {
+        while ((!notArrived.empty() || !readyQueue.empty()) && currTime < endTime)
+        {
+            while (!notArrived.empty() && notArrived.front()->getArrivalTime() <= currTime)
+            {
                 readyQueue.push(notArrived.front());
                 notArrived.erase(notArrived.begin());
             }
 
-            if(readyQueue.empty() && !notArrived.empty()) {
+            if (readyQueue.empty() && !notArrived.empty())
+            {
                 currTime = notArrived.front()->getArrivalTime();
                 continue;
             }
 
-            if(readyQueue.empty()) break;
+            if (readyQueue.empty())
+                break;
 
-            Process* nextProcess = readyQueue.top();
+            Process *nextProcess = readyQueue.top();
             readyQueue.pop();
             int nextArrivalTime = notArrived.empty() ? INT_MAX : notArrived.front()->getArrivalTime() - currTime;
             int remTime = nextProcess->getServiceTime() - nextProcess->getProgressTime();
             int runTime = min(remTime, nextArrivalTime);
             currTime += runTime;
             nextProcess->incrementProgressTime(runTime);
-            if(nextProcess->getProgressTime() >= nextProcess->getServiceTime()) {
+            if (nextProcess->getProgressTime() >= nextProcess->getServiceTime())
+            {
                 nextProcess->setFinishTime(currTime);
-            } else {
+            }
+            else
+            {
                 readyQueue.push(nextProcess);
             }
         }
@@ -703,7 +734,7 @@ public:
                 continue;
             }
 
-            pair<Process*, int> popped = qn[iq].front();
+            pair<Process *, int> popped = qn[iq].front();
             qn[iq].pop();
             popped.first->incrementProgressTime(1);
             popped.first->appendProgressTimes(t);
@@ -722,7 +753,7 @@ public:
 
             else
             {
-                queue<pair<Process*, int>> newQ;
+                queue<pair<Process *, int>> newQ;
                 newQ.push(popped);
                 qn.push_back(newQ);
             }
@@ -730,7 +761,7 @@ public:
 
         return getProcessesStats();
     }
-    
+
     vector<vector<string>> FB2()
     {
 
@@ -738,9 +769,7 @@ public:
 
         vector<queue<pair<Process *, int>>> qn(1);
 
-
         vector<int> quanta(numProcesses, 1);
-
 
         while (t <= endTime)
         {
@@ -756,7 +785,8 @@ public:
                 }
             }
 
-            if(t <= tPrev){ //there is a running process within the current time slice 
+            if (t <= tPrev)
+            { // there is a running process within the current time slice
                 t++;
                 continue;
             }
@@ -783,11 +813,13 @@ public:
                 t++;
                 continue;
             }
-            
+
             bool stayInQueue = true;
 
-            for(int i = 0; i <= quanta[lastEnti] ;i++){
-                if(lastEnti + 1 < numProcesses && processes[lastEnti+1].getArrivalTime() == t + i){
+            for (int i = 0; i <= quanta[lastEnti]; i++)
+            {
+                if (lastEnti + 1 < numProcesses && processes[lastEnti + 1].getArrivalTime() == t + i)
+                {
                     stayInQueue = false;
                     break;
                 }
@@ -797,15 +829,17 @@ public:
             {
                 int progressTime = qn[iq].front().first->getProgressTime();
 
-                for(int i = 0 ; i < quanta[lastEnti];i++){
-                    
+                for (int i = 0; i < quanta[lastEnti]; i++)
+                {
+
                     progressTime += 1;
 
                     qn[iq].front().first->incrementProgressTime(1);
-                    qn[iq].front().first->appendProgressTimes(t+i);
+                    qn[iq].front().first->appendProgressTimes(t + i);
 
-                    if(progressTime == qn[iq].front().first->getServiceTime()){
-                        qn[iq].front().first->setFinishTime(t+i+1);
+                    if (progressTime == qn[iq].front().first->getServiceTime())
+                    {
+                        qn[iq].front().first->setFinishTime(t + i + 1);
                         qn[iq].pop();
 
                         break;
@@ -816,24 +850,23 @@ public:
                 continue;
             }
 
-            pair<Process*, int> popped = qn[iq].front();
+            pair<Process *, int> popped = qn[iq].front();
             qn[iq].pop();
 
-
             int endInterval = min(quanta[lastEnti], popped.first->getServiceTime() - popped.first->getProgressTime());
-            
+
             popped.first->incrementProgressTime(endInterval);
 
-            for(int i = 0 ; i < endInterval;i++){
-                
-                popped.first->appendProgressTimes(t+i);
-                tPrev = t+i;
+            for (int i = 0; i < endInterval; i++)
+            {
+
+                popped.first->appendProgressTimes(t + i);
+                tPrev = t + i;
             }
 
-            
             if (popped.first->getServiceTime() == popped.first->getProgressTime())
             {
-                popped.first->setFinishTime(t+endInterval);
+                popped.first->setFinishTime(t + endInterval);
             }
 
             else if (qn.size() - 1 > iq) // there exist a following queue
@@ -844,7 +877,7 @@ public:
 
             else
             {
-                queue<pair<Process*, int>> newQ;
+                queue<pair<Process *, int>> newQ;
                 newQ.push(popped);
                 qn.push_back(newQ);
                 quanta[lastEnti] *= 2;
@@ -853,8 +886,6 @@ public:
         }
         return getProcessesStats();
     }
-
-    
 };
 
 int main()
@@ -862,6 +893,6 @@ int main()
     // Scheduler scheduler = Scheduler("./testcases/02a-input.txt", "./output.txt");
     // scheduler.runSchedule();
 
-    Scheduler scheduler2 = Scheduler("./testcases/08b-input.txt", "./output2.txt");
+    Scheduler scheduler2 = Scheduler("./testcases/03d-input.txt", "./output2.txt");
     scheduler2.runSchedule();
 }
