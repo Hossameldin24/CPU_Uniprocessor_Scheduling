@@ -9,6 +9,7 @@ class Process {
         int processServiceTime;
         int processFinishTime;
         int processProgressTime;
+        int processPriority;
 
         set<int> processProgressTimes;
 
@@ -17,6 +18,7 @@ class Process {
             processName = name;
             processArrivalTime = arrivalTime;
             processServiceTime = serviceTime;
+            processPriority = processServiceTime;
             processProgressTime = 0;
         }
 
@@ -62,5 +64,17 @@ class Process {
         
         void setFinishTime(int finishTime){
             processFinishTime = finishTime;
+        }
+
+        int getPriority(){
+            return processPriority;
+        }
+
+        void incrementPriority(){
+            processPriority += 1;
+        }
+
+        void resetPriority(){
+            processPriority = processServiceTime;
         }
 };
