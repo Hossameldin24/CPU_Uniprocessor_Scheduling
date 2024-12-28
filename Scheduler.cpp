@@ -71,7 +71,7 @@ public:
                 }
                 else if (algorithm == "7")
                 {
-                    // output = FB-2i(); - UNCOMMENT WHEN IMPLEMENTED
+                    output = FB2();
                 }
                 else if (algorithm[0] == '8')
                 {
@@ -119,7 +119,7 @@ public:
                 }
                 else if (algorithm == "7")
                 {
-                    // output = FB-2i(); - UNCOMMENT WHEN IMPLEMENTED
+                    output = FB2();
                 }
                 else if (algorithm[0] == '8')
                 {
@@ -646,7 +646,7 @@ public:
 
         int t = 0;
 
-        vector<queue<Process *>> qn(1);
+        vector<queue<pair<Process *, int>>> qn(1);
 
         while (t <= endTime)
         {
@@ -658,8 +658,7 @@ public:
 
                 if (processes[i].getArrivalTime() == t && processes[i].getFinishTime() == -1)
                 {
-                    qn[0].push(&processes[i]);
-                    lastEnti = i;
+                    qn[0].push({&processes[i], i});
                 }
             }
 
@@ -675,6 +674,7 @@ public:
                     if (iq == -1)
                     {
                         iq = i;
+                        lastEnti = qn[i].front().second;
                     }
 
                     pcount += qn[i].size();
@@ -690,29 +690,29 @@ public:
             if (pcount == 1 && ((lastEnti + 1 < numProcesses && processes[lastEnti + 1].getArrivalTime() != t + 1) || lastEnti == numProcesses - 1))
             {
                 // The only process in all queues at the current time
-                qn[iq].front()->appendProgressTimes(t);
+                qn[iq].front().first->appendProgressTimes(t);
 
                 t++;
-                qn[iq].front()->incrementProgressTime(1);
+                qn[iq].front().first->incrementProgressTime(1);
 
-                if (qn[iq].front()->getProgressTime() == qn[iq].front()->getServiceTime())
+                if (qn[iq].front().first->getProgressTime() == qn[iq].front().first->getServiceTime())
                 {
-                    qn[iq].front()->setFinishTime(t);
+                    qn[iq].front().first->setFinishTime(t);
                     qn[iq].pop();
                 }
                 continue;
             }
 
-            Process *popped = qn[iq].front();
+            pair<Process*, int> popped = qn[iq].front();
             qn[iq].pop();
-            popped->incrementProgressTime(1);
-            popped->appendProgressTimes(t);
+            popped.first->incrementProgressTime(1);
+            popped.first->appendProgressTimes(t);
 
             t++;
 
-            if (popped->getServiceTime() == popped->getProgressTime())
+            if (popped.first->getServiceTime() == popped.first->getProgressTime())
             {
-                popped->setFinishTime(t);
+                popped.first->setFinishTime(t);
             }
 
             else if (qn.size() - 1 > iq)
@@ -722,7 +722,7 @@ public:
 
             else
             {
-                queue<Process *> newQ;
+                queue<pair<Process*, int>> newQ;
                 newQ.push(popped);
                 qn.push_back(newQ);
             }
@@ -730,6 +730,131 @@ public:
 
         return getProcessesStats();
     }
+    
+    vector<vector<string>> FB2()
+    {
+
+        int t = 0, tPrev = -1;
+
+        vector<queue<pair<Process *, int>>> qn(1);
+
+
+        vector<int> quanta(numProcesses, 1);
+
+
+        while (t <= endTime)
+        {
+
+            int lastEnti = 0;
+
+            for (int i = 0; i < numProcesses; i++)
+            {
+
+                if (processes[i].getArrivalTime() == t)
+                {
+                    qn[0].push({&processes[i], i});
+                }
+            }
+
+            if(t <= tPrev){ //there is a running process within the current time slice 
+                t++;
+                continue;
+            }
+
+            int iq = -1, pcount = 0;
+
+            for (int i = 0; i < qn.size(); i++)
+            {
+
+                if (!qn[i].empty())
+                {
+                    if (iq == -1)
+                    {
+                        iq = i;
+                        lastEnti = qn[i].front().second;
+                    }
+
+                    pcount += qn[i].size();
+                }
+            }
+
+            if (iq == -1) // all queues are empty
+            {
+                t++;
+                continue;
+            }
+            
+            bool stayInQueue = true;
+
+            for(int i = 0; i <= quanta[lastEnti] ;i++){
+                if(lastEnti + 1 < numProcesses && processes[lastEnti+1].getArrivalTime() == t + i){
+                    stayInQueue = false;
+                    break;
+                }
+            }
+
+            if (pcount == 1 && stayInQueue) // The only process in all queues at the current time
+            {
+                int progressTime = qn[iq].front().first->getProgressTime();
+
+                for(int i = 0 ; i < quanta[lastEnti];i++){
+                    
+                    progressTime += 1;
+
+                    qn[iq].front().first->incrementProgressTime(1);
+                    qn[iq].front().first->appendProgressTimes(t+i);
+
+                    if(progressTime == qn[iq].front().first->getServiceTime()){
+                        qn[iq].front().first->setFinishTime(t+i+1);
+                        qn[iq].pop();
+
+                        break;
+                    }
+                }
+
+                t += quanta[lastEnti];
+                continue;
+            }
+
+            pair<Process*, int> popped = qn[iq].front();
+            qn[iq].pop();
+
+
+            int endInterval = min(quanta[lastEnti], popped.first->getServiceTime() - popped.first->getProgressTime());
+            
+            popped.first->incrementProgressTime(endInterval);
+
+            for(int i = 0 ; i < endInterval;i++){
+                
+                popped.first->appendProgressTimes(t+i);
+                tPrev = t+i;
+            }
+
+            
+            if (popped.first->getServiceTime() == popped.first->getProgressTime())
+            {
+                popped.first->setFinishTime(t+endInterval);
+            }
+
+            else if (qn.size() - 1 > iq) // there exist a following queue
+            {
+                qn[iq + 1].push(popped);
+                quanta[lastEnti] *= 2;
+            }
+
+            else
+            {
+                queue<pair<Process*, int>> newQ;
+                newQ.push(popped);
+                qn.push_back(newQ);
+                quanta[lastEnti] *= 2;
+            }
+            t++;
+        }
+        return getProcessesStats();
+    }
+
+    
 };
 
 int main()
@@ -737,6 +862,6 @@ int main()
     // Scheduler scheduler = Scheduler("./testcases/02a-input.txt", "./output.txt");
     // scheduler.runSchedule();
 
-    Scheduler scheduler2 = Scheduler("./testcases/03b-input.txt", "./output2.txt");
+    Scheduler scheduler2 = Scheduler("./testcases/08b-input.txt", "./output2.txt");
     scheduler2.runSchedule();
 }
