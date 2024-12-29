@@ -1,13 +1,9 @@
 FROM gcc:11
 
-WORKDIR /app
+WORKDIR /usr/src/app
 
-COPY . /app
+COPY . .
 
-RUN apt-get update
+RUN apt-get update && apt-get install -y make
 
-RUN ls -l /app/testcases
-
-RUN echo "Listing the files in the container:" && ls -R /app
-
-RUN make -v && make test -v
+CMD ["make", "test"]
