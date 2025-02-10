@@ -33,36 +33,30 @@ class InputParser {
 
         }
 
-        bool readFile(string fileName) {
-            ifstream file(fileName);
-            if (!file.is_open()) {
-                cerr << "Unable to open file " << fileName << endl;
-                return false;
-            }
+        bool readFile() {
 
             string line;
 
-            getline(file, line);
+            getline(cin, line);
             outputType = line;
 
-            getline(file, line);
+            getline(cin, line);
             algorithmsList = splitByDelim(line, ',');
 
-            getline(file, line);
+            getline(cin, line);
             endTime = stoi(line);
 
-            getline(file, line);
+            getline(cin, line);
             numProcesses = stoi(line);
 
             for(int i = 0; i < numProcesses; i++){
-                getline(file, line);
+                getline(cin, line);
                 vector<string> processConfig = splitByDelim(line, ',');
 
                 Process process = Process(processConfig[0][0], stoi(processConfig[1]), stoi(processConfig[2]));
                 Processes.push_back(process);
             }
 
-            file.close();
             return true;
         }
 

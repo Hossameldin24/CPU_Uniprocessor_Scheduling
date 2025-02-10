@@ -12,7 +12,6 @@ class Scheduler
 {
 private:
     InputParser parser;
-    string inputFilePath;
     vector<Process> processes;
     int numProcesses;
     int endTime;
@@ -30,15 +29,14 @@ private:
     }
 
 public:
-    Scheduler(string inputFilePath)
+    Scheduler()
     {
         parser = InputParser();
-        this->inputFilePath = inputFilePath;
     }
 
     void runSchedule()
     {
-        parser.readFile(this->inputFilePath);
+        parser.readFile();
         algorithms = parser.getAlgorithmsList();
         processes = parser.getProcesses();
         sort(processes.begin(), processes.end(), [](Process a, Process b)
@@ -957,15 +955,8 @@ public:
 
 int main(int argc, char *argv[])
 {
-    if (argc != 2)
-    {
-        cerr << "Usage: " << argv[0] << " <input_file_path>" << endl;
-        return 1;
-    }
 
-    string inputFilePath = argv[1];
-
-    Scheduler scheduler(inputFilePath);
+    Scheduler scheduler = Scheduler();
     scheduler.runSchedule();
 
     return 0;
